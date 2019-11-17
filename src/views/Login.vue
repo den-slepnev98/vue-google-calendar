@@ -1,6 +1,7 @@
 <template>
     <div class="container">
-        <div class="row justify-content-center">
+        <Loader v-if="loading" />
+        <div v-else class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">Login</div>
@@ -25,7 +26,7 @@
                             </div>
 
                             <div class="form-group row mb-0">
-                                <div class="col-md-8 offset-md-4">
+                                <div class="col-md-10" style="text-align: right">
                                     <button type="submit" class="btn btn-primary">Login</button>
                                 </div>
                             </div>
@@ -39,9 +40,11 @@
 
 <script>
     import firebase from "firebase";
+    import store from "../store"
+    import Loader from '../components/Loader'
 
     const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+    provider.addScope('https://www.googleapis.com/auth/calendar');
 
     export default {
         data() {
@@ -49,18 +52,45 @@
                 form: {
                     email: ""
                 },
-                error: null
+                error: null,
+                loading: false
             };
+        },
+        components: {
+            Loader
         },
         methods: {
             submit() {
+                this.loading = true;
                 provider.setCustomParameters({
                     'login_hint': this.form.email
                 });
                 firebase
                     .auth()
-                    .signInWithRedirect(provider)
-
+                    .signInWithPopup(provider)
+                    .then(result => {
+                        this.loading = false;
+                        if(result.credential) {
+                            let user = Object.assign({
+                                accessToken: result.credential.accessToken
+                            }, result.user);
+                            store.dispatch("fetchUser", user);
+                            this.initGapi(result.credential.accessToken)
+                        }
+                        this.$router.replace({name: "home"});
+                    })
+                    .catch(err => {
+                        console.error(err.message)
+                    });
+            },
+            initGapi(token) {
+                this.$getGapiClient().then(gapi => {
+                    gapi.client.setToken({
+                        access_token: token
+                    });
+                    store.dispatch('initGapi', gapi);
+                    store.dispatch('fetchEvents');
+                })
             }
         }
     };
