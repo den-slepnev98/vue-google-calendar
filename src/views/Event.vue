@@ -2,7 +2,7 @@
     <div class="event">
         <div class="card">
             <div class="card-header">
-                Event # {{this.id}}
+                Event #{{this.id}}
             </div>
             <div class="card-body">
                 <form @submit.prevent="submit">
@@ -15,14 +15,21 @@
                         <textarea rows="3" class="form-control" v-model="description"></textarea>
                     </div>
                     <div class="form-group">
+                        <label>All day: </label>
+                        <input type="checkbox" v-model="allDay">
+                    </div>
+                    <div class="form-group">
                         <label>Start:</label>
-                        <VueCtkDateTimePicker format="YYYY-MM-DD hh:mm:ss" v-model="start" />
+                        <VueCtkDateTimePicker format="YYYY-MM-DDThh:mm:ss" v-model="start" />
                     </div>
                     <div class="form-group">
                         <label>End:</label>
-                        <VueCtkDateTimePicker format="YYYY-MM-DD hh:mm:ss" v-model="end" />
+                        <VueCtkDateTimePicker format="YYYY-MM-DDThh:mm:ss" v-model="end" />
                     </div>
                 </form>
+                <div class="btn-container">
+                    <button @click="removeEvent" class="btn btn-danger">Remove event</button>
+                </div>
             </div>
         </div>
     </div>
@@ -33,14 +40,73 @@
 
     export default {
         props: ["id"],
+        data() {
+            return {
+                start: null,
+                end: null
+            }
+        },
+        beforeCreate: function() {
+            if(!store.getters.allEvents.length) {
+                this.$router.replace({name: "home"});
+            }
+        },
+        created: function () {
+            if(this.id) {
+                let event = store.getters.getEventById(this.id);
+                this.start = event ? (event.start.dateTime || event.start.date): '';
+                this.end = event ? (event.end.dateTime || event.end.date): '';
+            }
+        },
+        methods: {
+            removeEvent() {
+                if(this.id) {
+                    store.dispatch('removeEvent', this.id).then(()=> {
+                        this.$router.replace({name: "events"});
+                    });
+                }
+            }
+        },
+        watch: {
+            start: function (newVal, oldVal) {
+                if(this.start > this.end) {
+                    this.start = oldVal
+                } else {
+                    if(newVal.indexOf("T") !== -1 && this.start !== this.end) {
+                        store.dispatch('updateEvent', {
+                            id: this.id,
+                            key: "start",
+                            value: newVal
+                        });
+                    }
+                }
+            },
+            end: function (newVal, oldVal) {
+                if(this.start > this.end) {
+                    this.end = oldVal
+                } else {
+                    if(newVal.indexOf("T") !== -1 && (this.start.indexOf("T") !== -1 || this.end.indexOf("T") !== -1)) {
+                        store.dispatch('updateEvent', {
+                            id: this.id,
+                            key: "end",
+                            value: newVal
+                        });
+                    }
+                }
+            }
+        },
         computed: {
             summary: {
                 get: function() {
                     let event = store.getters.getEventById(this.id);
                     return event ? event.summary: ''
                 },
-                set: (value) => {
-
+                set: function(value) {
+                    store.dispatch('updateEvent', {
+                        id: this.id,
+                        key: "summary",
+                        value
+                    });
                 }
             },
             description: {
@@ -48,38 +114,39 @@
                     let event = store.getters.getEventById(this.id);
                     return event ? event.description: ''
                 },
-                set: (value) => {
-
+                set: function(value) {
+                    store.dispatch('updateEvent', {
+                        id: this.id,
+                        key: "description",
+                        value
+                    });
                 }
             },
-            start: {
-                get: function() {
-                    let event = store.getters.getEventById(this.id);
-                    return event ? (event.start.dateTime || event.start.date): ''
+            allDay: {
+                get: function () {
+                    return this.start && this.end && this.start.indexOf("T") === -1  && this.end.indexOf("T") === -1
                 },
-                set: (value) => {
+                set: function(value) {
+                    if(value) {
+                        this.start = this.start.split("T")[0];
+                        this.end = this.end.split("T")[0];
+                    }
 
+                    store.dispatch('updateEvent', {
+                        id: this.id,
+                        key: "allDay",
+                        value
+                    });
                 }
-            },
-            end: {
-                get: function() {
-                    let event = store.getters.getEventById(this.id);
-                    return event ? (event.end.dateTime || event.end.date): ''
-                },
-                set: (value) => {
-
-                }
-            }
-        },
-        methods: {
-            submit() {
-
             }
         }
     }
 </script>
 
 <style scoped>
+    .btn-container {
+        text-align: end;
+    }
     .event {
         max-width: 600px;
         margin: 0 auto;

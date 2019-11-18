@@ -61,6 +61,7 @@
         },
         methods: {
             submit() {
+                this.error = null;
                 this.loading = true;
                 provider.setCustomParameters({
                     'login_hint': this.form.email
@@ -80,7 +81,8 @@
                         this.$router.replace({name: "home"});
                     })
                     .catch(err => {
-                        console.error(err.message)
+                        this.error = err.message;
+                        this.loading = false;
                     });
             },
             initGapi(token) {

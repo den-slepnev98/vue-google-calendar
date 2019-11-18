@@ -13,6 +13,7 @@
     "firebase": "^7.3.0",
     "moment": "^2.24.0",
     "vue": "^2.6.10",
+    "vue-async-computed": "^3.7.0",
     "vue-ctk-date-time-picker": "^2.4.0",
     "vue-gapi": "^0.1.0",
     "vue-moment": "^4.0.0",

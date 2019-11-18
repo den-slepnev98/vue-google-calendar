@@ -53,10 +53,10 @@
                     .then(() => {
                         this.$store.dispatch("fetchUser", null);
                         this.$store.dispatch("initGapi", null);
-                        this.$store.dispatch("fetchEvents", []);
-                        try {
+                        this.$store.commit("set_events", []);
+                        if(this.$router.history.current.name !== "home") {
                             this.$router.replace({name: "home"})
-                        } catch (e) {}
+                        }
                     })
                     .catch(err => {
                         console.error(err)

@@ -6,6 +6,7 @@
         </span>
         {{event.start.dateTime | moment("DD/MM/YYYY, h:mm a") || event.start.date | moment("DD/MM/YYYY")}}
         - {{event.end.dateTime | moment("DD/MM/YYYY, h:mm a") || event.end.date | moment("DD/MM/YYYY")}}
+        {{event.end.date ? "All day" : "" }}
         <span v-if="fullInfo" class="desc">{{event.description || "-"}}</span>
     </li>
 </template>
@@ -39,6 +40,7 @@
         width: 80%;
         align-items: flex-start;
         font-size: 12px;
+        padding-left: 3rem;
     }
     span {
         font-weight: bold;

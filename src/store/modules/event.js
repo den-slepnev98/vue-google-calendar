@@ -60,6 +60,16 @@ export default {
             } else {
                 state.filteredEvents = state.events
             }
+        },
+        UPDATE_EVENT_BY_ID(state, {id, event}) {
+            let index = state.events.findIndex(event => event.id === id);
+            if(index !== -1) {
+                state.events[index] = event;
+            }
+        },
+        REMOVE_EVENT(state, eventId) {
+            state.events = state.events.filter(event => event.id.toString() !== eventId.toString());
+            state.filteredEvents = state.events;
         }
     },
     actions: {
@@ -68,6 +78,7 @@ export default {
                 state.gapi.client.calendar.events.list({
                     calendarId: "primary",
                     timeMin: new Date().toISOString(),
+                    timeZone: "Europe/Kiev",
                     showDeleted: false,
                     singleEvents: true,
                     maxResults: 100,
@@ -92,11 +103,74 @@ export default {
                 });
             }
         },
+        removeEvent({commit, state}, eventId) {
+            if(eventId && state.gapi) {
+                state.gapi.client.calendar.events.delete({
+                    calendarId: "primary",
+                    eventId: eventId
+                }).then(response => {
+                    return commit('REMOVE_EVENT', eventId);
+                })
+            }
+        },
         initGapi({commit}, gapi) {
             if(gapi) {
                 commit('SET_GAPI', gapi);
             } else {
                 commit('SET_GAPI', null);
+            }
+        },
+        updateEvent({commit, state}, {id, key, value}) {
+            let event = state.events.find(event => event.id == id);
+            if(event) {
+                let updatedEvent = Object.assign({}, event);
+                if(["start", "end"].includes(key)) {
+
+                    if(updatedEvent.start.dateTime && updatedEvent.end.dateTime) {
+                        updatedEvent[key] = {
+                            dateTime: value,
+                            timeZone: "Europe/Kiev"
+                        };
+                    } else {
+                        updatedEvent.start = {
+                            dateTime: key === "start" ? value : updatedEvent.start.date + "T00:00:00",
+                            timeZone: "Europe/Kiev"
+                        };
+                        updatedEvent.end = {
+                            dateTime: key === "end" ? value : updatedEvent.end.date + "T00:00:00",
+                            timeZone: "Europe/Kiev"
+                        };
+                    }
+
+                } else if("allDay" === key) {
+                    console.log(value);
+                    updatedEvent["start"] = {
+                        date: updatedEvent.start.date || updatedEvent.start.dateTime.split("T")[0],
+                        timeZone: "Europe/Kiev"
+                    };
+                    updatedEvent["end"] = {
+                        date: updatedEvent.end.date || updatedEvent.end.dateTime.split("T")[0],
+                        timeZone: "Europe/Kiev"
+                    }
+                }
+                else {
+                    updatedEvent[key] = value;
+                }
+
+                if(state.gapi) {
+                    state.gapi.client.calendar.events.update({
+                        calendarId: "primary",
+                        eventId: id,
+                        resource: updatedEvent
+                    }).then(response => {
+                        if(response.status === 200 && response.result.sequence) {
+                            updatedEvent.sequence = response.result.sequence;
+                            commit("UPDATE_EVENT_BY_ID", {id, event: updatedEvent});
+                        }
+                    }).catch((err) => {
+                        console.log(err.result.error.message)
+                    })
+                }
             }
         }
     }

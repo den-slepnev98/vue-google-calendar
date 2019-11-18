@@ -4,7 +4,7 @@
             <h4>Filter events</h4>
             <div class="form-group mt-4">
                 <label>Choose the date range:</label>
-                <VueCtkDateTimePicker format="DD/MM/YYYY" :auto-close="true" :range="true" v-model="range" />
+                <VueCtkDateTimePicker format="DD/MM/YYYY" :label="'Select range'" :auto-close="true" :range="true" v-model="range" />
             </div>
         </form>
     </div>

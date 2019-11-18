@@ -9,15 +9,21 @@
             <textarea rows="3" class="form-control" v-model="description"></textarea>
         </div>
         <div class="form-group">
+            <label>All day: </label>
+            <input type="checkbox" v-model="allDay">
+        </div>
+        <div class="form-group">
             <label>Start:</label>
-            <VueCtkDateTimePicker format="YYYY-MM-DD hh:mm:ss" v-model="start" />
+            <VueCtkDateTimePicker format="YYYY-MM-DDThh:mm:ss" v-model="start" />
         </div>
         <div class="form-group">
             <label>End:</label>
-            <VueCtkDateTimePicker format="YYYY-MM-DD hh:mm:ss" v-model="end" />
+            <VueCtkDateTimePicker format="YYYY-MM-DDThh:mm:ss" v-model="end" />
         </div>
-        <div class="msg">
-            {{this.msg}}
+        <div v-if="errors.length" class="alert alert-danger">
+            <ul>
+                <li v-for="error in errors">{{ error }}</li>
+            </ul>
         </div>
         <button class="btn btn-success" type="submit">Create event</button>
     </form>
@@ -33,7 +39,26 @@
                 description: '',
                 start: '',
                 end: '',
-                msg: ''
+                allDay: false,
+                errors: []
+            }
+        },
+        watch: {
+            allDay(val) {
+                if(val) {
+                    this.start = this.start.split("T")[0];
+                    this.end = this.end.split("T")[0];
+                }
+            },
+            start(val) {
+                if(this.allDay) {
+                    this.start = val.split("T")[0]
+                }
+            },
+            end(val) {
+                if(this.allDay) {
+                    this.end = val.split("T")[0]
+                }
             }
         },
         components: {
@@ -41,24 +66,45 @@
         },
         methods: {
             submit() {
-                if(this.start <= this.end) {
-                    this.$store.dispatch('insertEvent', {
+                this.errors = [];
+                if(!this.summary) {
+                    this.errors.push("Summary is required");
+                }
+                if(!this.description) {
+                    this.errors.push("Description is required");
+                }
+                if(!this.start) {
+                    this.errors.push("Start is required");
+                }
+                if(!this.end) {
+                    this.errors.push("End is required");
+                }
+                if(this.start > this.end) {
+                    this.errors.push("Start date must be less or equal than end date")
+                }
+                if(!this.errors.length) {
+                    let newEvent = {
                         summary: this.summary,
                         description: this.description,
                         start: {
-                            dateTime: this.start.split(" ").join("T"),
                             timeZone: "Europe/Kiev"
                         },
                         end: {
-                            dateTime: this.end.split(" ").join("T"),
                             timeZone: "Europe/Kiev"
                         },
                         id: Date.now()
-                    });
+                    };
+                    if(this.allDay) {
+                        newEvent.start.date = this.start;
+                        newEvent.end.date = this.end;
+                    } else {
+                        newEvent.start.dateTime = this.start;
+                        newEvent.end.dateTime = this.end;
+                    }
+                    this.$store.dispatch('insertEvent', newEvent);
                     this.summary = this.start = this.end = this.msg = this.description = '';
+                    this.allDay = false;
                     this.$emit('close-modal', true);
-                } else {
-                    this.msg = "Start date must be less or equal than end date"
                 }
             }
         }

@@ -1,11 +1,12 @@
 <template>
     <div class="events">
-        <h2>{{header}}</h2>
         <div v-if="user.loggedIn">
+            <h2>{{header}}</h2>
             <Modal />
             <div class="col-12" v-if="allowFilter">
                 <FilterEvents />
                 <hr>
+                <button @click="refreshEvents" class="btn btn-success">Refresh</button>
             </div>
             <ul v-if="allEvents.length">
                 <EventItem
@@ -15,7 +16,7 @@
             </ul>
             <p v-else>No events</p>
         </div>
-        <p v-else>Not authorized</p>
+        <h3 v-else>Not authorized</h3>
     </div>
 </template>
 
@@ -24,6 +25,7 @@
     import Modal from "../components/Modal";
     import FilterEvents from "../components/FilterEvents";
     import {mapGetters} from 'vuex'
+    import store from "../store"
 
     export default {
         components: {
@@ -49,6 +51,11 @@
                 return this.$router.history.current.name === "events" ? "All events" : "The nearest events"
             }
         },
+        methods: {
+            refreshEvents() {
+                store.dispatch('fetchEvents');
+            }
+        }
     }
 </script>
 
