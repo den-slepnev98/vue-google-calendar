@@ -9,7 +9,7 @@
 
                         <!-- Modal Header -->
                         <div class="modal-header">
-                            <h4 class="modal-title">Modal Heading</h4>
+                            <h4 class="modal-title">Create event modal</h4>
                         </div>
 
                         <!-- Modal body -->

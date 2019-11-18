@@ -62,7 +62,7 @@ export default {
             }
         },
         UPDATE_EVENT_BY_ID(state, {id, event}) {
-            let index = state.events.findIndex(event => event.id === id);
+            let index = state.events.findIndex(e=> e.id == id);
             if(index !== -1) {
                 state.events[index] = event;
             }
@@ -163,7 +163,7 @@ export default {
                         eventId: id,
                         resource: updatedEvent
                     }).then(response => {
-                        if(response.status === 200 && response.result.sequence) {
+                        if(response.status === 200 && response.result) {
                             updatedEvent.sequence = response.result.sequence;
                             commit("UPDATE_EVENT_BY_ID", {id, event: updatedEvent});
                         }

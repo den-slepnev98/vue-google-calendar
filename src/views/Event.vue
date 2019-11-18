@@ -43,7 +43,9 @@
         data() {
             return {
                 start: null,
-                end: null
+                end: null,
+                startInit: false,
+                endInit: false
             }
         },
         beforeCreate: function() {
@@ -51,7 +53,7 @@
                 this.$router.replace({name: "home"});
             }
         },
-        created: function () {
+        mounted: function () {
             if(this.id) {
                 let event = store.getters.getEventById(this.id);
                 this.start = event ? (event.start.dateTime || event.start.date): '';
@@ -69,10 +71,14 @@
         },
         watch: {
             start: function (newVal, oldVal) {
+                if(!newVal) {
+                    this.start = oldVal;
+                    return
+                }
                 if(this.start > this.end) {
                     this.start = oldVal
                 } else {
-                    if(newVal.indexOf("T") !== -1 && this.start !== this.end) {
+                    if(newVal.indexOf("T") !== -1 && (this.start.indexOf("T") !== -1 || this.end.indexOf("T") !== -1) && this.startInit) {
                         store.dispatch('updateEvent', {
                             id: this.id,
                             key: "start",
@@ -80,12 +86,17 @@
                         });
                     }
                 }
+                this.startInit = true;
             },
             end: function (newVal, oldVal) {
+                if(!newVal) {
+                    this.end = oldVal;
+                    return
+                }
                 if(this.start > this.end) {
                     this.end = oldVal
                 } else {
-                    if(newVal.indexOf("T") !== -1 && (this.start.indexOf("T") !== -1 || this.end.indexOf("T") !== -1)) {
+                    if(newVal.indexOf("T") !== -1 && (this.start.indexOf("T") !== -1 || this.end.indexOf("T") !== -1) && this.endInit) {
                         store.dispatch('updateEvent', {
                             id: this.id,
                             key: "end",
@@ -93,6 +104,7 @@
                         });
                     }
                 }
+                this.endInit = true;
             }
         },
         computed: {

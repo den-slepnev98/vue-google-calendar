@@ -5,8 +5,6 @@
             <Modal />
             <div class="col-12" v-if="allowFilter">
                 <FilterEvents />
-                <hr>
-                <button @click="refreshEvents" class="btn btn-success">Refresh</button>
             </div>
             <ul v-if="allEvents.length">
                 <EventItem
@@ -25,7 +23,6 @@
     import Modal from "../components/Modal";
     import FilterEvents from "../components/FilterEvents";
     import {mapGetters} from 'vuex'
-    import store from "../store"
 
     export default {
         components: {
@@ -49,11 +46,6 @@
             },
             header: function () {
                 return this.$router.history.current.name === "events" ? "All events" : "The nearest events"
-            }
-        },
-        methods: {
-            refreshEvents() {
-                store.dispatch('fetchEvents');
             }
         }
     }

@@ -70,9 +70,6 @@
                 if(!this.summary) {
                     this.errors.push("Summary is required");
                 }
-                if(!this.description) {
-                    this.errors.push("Description is required");
-                }
                 if(!this.start) {
                     this.errors.push("Start is required");
                 }

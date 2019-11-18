@@ -7,10 +7,16 @@
                 <VueCtkDateTimePicker format="DD/MM/YYYY" :label="'Select range'" :auto-close="true" :range="true" v-model="range" />
             </div>
         </form>
+        <hr>
+        <div class="col-3">
+            <button @click="refreshEvents" class="btn btn-success">Refresh</button>
+        </div>
     </div>
 </template>
 
 <script>
+    import store from "../store"
+
     export default {
         data() {
             return {
@@ -26,6 +32,15 @@
                     start: value ? value.start : null,
                     end: value ? value.end : null
                 });
+            }
+        },
+        methods: {
+            refreshEvents() {
+                this.range = {
+                    start: null,
+                    end: null
+                };
+                store.dispatch('fetchEvents');
             }
         }
     }
